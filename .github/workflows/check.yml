@@ -1,13 +1,9 @@
 name: VPN Gate Node Check
 
-# 模板仓库默认不配置定时任务：需要自动更新时，把下面的注释替换成你自己的 cron。
-# 注意：GitHub 调度最小间隔约 5 分钟，但通常会延迟几分钟；仓库连续 60 天无提交会让定时任务自动停用。
-#
-# on:
-#   schedule:
-#     - cron: '*/30 * * * *'
-
 on:
+  # UTC 20:00 = 北京时间次日 04:00，每天跑一次
+  schedule:
+    - cron: '0 20 * * *'
   workflow_dispatch:
     inputs:
       max_nodes:
@@ -70,6 +66,30 @@ jobs:
           MAX_CHECK_NODES: ${{ github.event.inputs.max_nodes || '0' }}
           MIN_SUCCESS_RATIO: '0'
         run: python vpngate.py
+
+      # 把刚生成的节点列表自动写进 edgetunnel 的「自定义优选 IP」，
+      # 这样订阅地址里的节点会跟着每天自动更新，无需手工维护。
+      - name: Sync nodes to edgetunnel
+        continue-on-error: true
+        env:
+          EDGE_URL: ${{ secrets.EDGE_URL }}
+          EDGE_ADMIN: ${{ secrets.EDGE_ADMIN }}
+        run: |
+          set -u
+          if [ -z "${EDGE_URL:-}" ] || [ -z "${EDGE_ADMIN:-}" ]; then
+            echo "未配置 EDGE_URL / EDGE_ADMIN，跳过同步"
+            exit 0
+          fi
+          login=$(curl -sS -c /tmp/ec -o /tmp/login.json -w '%{http_code}' -X POST \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "password=${EDGE_ADMIN}" "${EDGE_URL}/login" || true)
+          echo "edgetunnel login -> ${login}"
+          upload=$(curl -sS -b /tmp/ec -o /tmp/up.json -w '%{http_code}' -X POST \
+            -H "Content-Type: text/plain" --data-binary @public/nodes.txt \
+            "${EDGE_URL}/admin/ADD.txt" || true)
+          echo "edgetunnel upload -> ${upload}"
+          cat /tmp/up.json 2>/dev/null || true
+          echo "同步节点行数：$(wc -l < public/nodes.txt)"
 
       - name: Ensure GitHub Pages is enabled
         env:
