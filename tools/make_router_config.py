@@ -126,8 +126,8 @@ proxies:
     lines.append("  - name: ♻️ 自动选择")
     lines.append("    type: url-test")
     lines.append("    url: 'https://cp.cloudflare.com/generate_204'")
-    lines.append("    interval: 600")
-    lines.append("    tolerance: 100")
+    lines.append("    interval: 900")
+    lines.append("    lazy: true")
     lines.append("    proxies:")
     for n in names:
         lines.append(f"      - {n}")
