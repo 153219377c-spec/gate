@@ -91,6 +91,9 @@ jobs:
           cat /tmp/up.json 2>/dev/null || true
           echo "同步节点行数：$(wc -l < public/nodes.txt)"
 
+      - name: Generate router config
+        run: |
+          python tools/make_router_config.py public/nodes.txt public/router.yaml || true
       - name: Ensure GitHub Pages is enabled
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
