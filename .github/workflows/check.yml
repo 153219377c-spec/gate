@@ -20,6 +20,8 @@ on:
         default: '25'
 
 permissions:
+
+  contents: write
   contents: read
   pages: write
   id-token: write
@@ -151,6 +153,16 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+      - name: Commit daily nodes snapshot
+        continue-on-error: true
+        run: |
+          git config user.name "gate-bot"
+          git config user.email "gate-bot@users.noreply.github.com"
+          mkdir -p snapshots
+          cp public/nodes.txt snapshots/nodes.txt
+          git add snapshots/nodes.txt
+          git commit -m "chore: daily nodes snapshot $(date -u +%Y-%m-%d)" || echo "nothing to commit"
+          git push || echo "push skipped"
       - name: Show site URL
         run: |
           echo "订阅地址：https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/nodes.txt"
