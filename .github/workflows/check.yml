@@ -92,8 +92,13 @@ jobs:
           echo "同步节点行数：$(wc -l < public/nodes.txt)"
 
       - name: Generate router config
+        env:
+          SUB_URL: ${{ vars.SUB_URL }}
         run: |
-          python tools/make_router_config.py public/nodes.txt public/router.yaml || true
+          curl -sS -m 60 -A "v2rayN/6.31" "$SUB_URL" -o /tmp/sub.b64 && \
+            python tools/make_router_config.py /tmp/sub.b64 public/router.yaml || true
+          ls -l public/router.yaml 2>/dev/null || echo "router.yaml 未生成"
+
       - name: Ensure GitHub Pages is enabled
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
