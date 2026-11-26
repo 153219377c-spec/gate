@@ -115,8 +115,8 @@ proxies:
     lines.append("  - name: 🚀 节点选择")
     lines.append("    type: select")
     lines.append("    proxies:")
-    lines.append("      - 🏠 住宅节点")
     lines.append("      - ♻️ 自动选择")
+    lines.append("      - 🏠 住宅节点")
     lines.append("      - DIRECT")
     lines.append("  - name: 🏠 住宅节点")
     lines.append("    type: select")
@@ -133,7 +133,7 @@ proxies:
         lines.append(f"      - {n}")
     lines.append("")
     lines.append("rules:")
-    lines.append("  - MATCH,🚀 节点选择")
+    lines.append("  - MATCH,♻️ 自动选择")
     lines.append("")
 
     os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
